@@ -1,7 +1,7 @@
 {
   "todos": [
-    { "id": "1", "title": "Watch the React video", "done": true },
-    { "id": "2", "title": "Build the to-do app", "done": false },
-    { "id": "3", "title": "Open a PR", "done": false }
+    { "id": "1", "title": "Watch the React video", "done": true, "createdAt": "2026-11-16T09:00:00.000Z" },
+    { "id": "2", "title": "Build the to-do app", "done": false, "createdAt": "2026-11-17T10:30:00.000Z" },
+    { "id": "3", "title": "Open a PR", "done": false, "createdAt": "2026-11-18T08:15:00.000Z" }
   ]
 }

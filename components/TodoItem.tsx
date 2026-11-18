@@ -19,6 +19,9 @@ export default function TodoItem({ todo, onToggle, onDelete }: TodoItemProps) {
       <span className={`flex-1 ${todo.done ? "text-gray-400 line-through" : ""}`}>
         {todo.title}
       </span>
+      <span className="text-xs text-gray-500">
+        {new Date(todo.createdAt).toLocaleDateString()}
+      </span>
       <button
         onClick={() => onDelete(todo.id)}
         className="text-sm text-red-500 hover:text-red-700"

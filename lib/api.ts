@@ -15,7 +15,8 @@ export async function createTodo(title: string): Promise<Todo> {
   const response = await fetch(`${API_URL}/todos`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ title, done: false }),
+    // The date is saved with the to-do, at the moment it is added
+    body: JSON.stringify({ title, done: false, createdAt: new Date().toISOString() }),
   });
   if (!response.ok) throw new Error("Could not save the to-do");
   return response.json();
