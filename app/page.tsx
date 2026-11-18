@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import AddTodoDialog from "@/components/AddTodoDialog";
 import TodoItem from "@/components/TodoItem";
@@ -33,7 +34,12 @@ export default function Home() {
 
   return (
     <main className="mx-auto mt-16 max-w-md px-4">
-      <h1 className="mb-6 text-3xl font-bold">My To-Do List</h1>
+      <div className="mb-6 flex items-baseline justify-between">
+        <h1 className="text-3xl font-bold">My To-Do List</h1>
+        <Link href="/about" className="text-indigo-600 hover:underline">
+          About
+        </Link>
+      </div>
       <AddTodoDialog onAdd={handleAdd} />
       <ul className="flex flex-col gap-2">
         {todos.map((todo) => (
