@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import AddTodoDialog from "@/components/AddTodoDialog";
 import TodoItem from "@/components/TodoItem";
 import { createTodo, deleteTodo, getAllTodos, updateTodo } from "@/lib/api";
@@ -9,29 +9,43 @@ import type { TodoFormValues } from "@/lib/todoSchema";
 import type { Todo } from "@/types/todo";
 
 export default function Home() {
-  // The to-do list lives in state. When it changes, React redraws the page.
-  const [todos, setTodos] = useState<Todo[]>([]);
+  // The to-do list is server state: TanStack Query loads it and keeps it
+  // in the shared cache under the key ["todos"]
+  const { data: todos = [], isPending, isError } = useQuery({
+    queryKey: ["todos"],
+    queryFn: getAllTodos,
+  });
 
-  // Load the to-dos from the API once, when the page opens
-  useEffect(() => {
-    getAllTodos().then(setTodos);
-  }, []);
+  const queryClient = useQueryClient();
+
+  // A mutation changes data on the server. When it works, we tell the cache
+  // that "todos" is out of date, so useQuery loads the list again by itself.
+  const addTodo = useMutation({
+    mutationFn: (values: TodoFormValues) =>
+      createTodo(values.title, values.dueDate || undefined),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["todos"] }),
+  });
 
   async function handleAdd(values: TodoFormValues) {
-    const newTodo = await createTodo(values.title, values.dueDate || undefined);
-    setTodos((current) => [...current, newTodo]);
+    // mutateAsync throws if saving fails, so the dialog can show its error
+    await addTodo.mutateAsync(values);
   }
 
-  // Event -> call the API -> update the state (and so the page)
-  async function handleToggle(todo: Todo) {
-    const updated = await updateTodo(todo.id, { done: !todo.done });
-    setTodos((current) => current.map((t) => (t.id === updated.id ? updated : t)));
-  }
+  // The same idea again: change the server, then mark "todos" as out of date
+  const toggleTodo = useMutation({
+    mutationFn: (todo: Todo) => updateTodo(todo.id, { done: !todo.done }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["todos"] }),
+  });
 
-  async function handleDelete(id: string) {
-    await deleteTodo(id);
-    setTodos((current) => current.filter((t) => t.id !== id));
-  }
+  const removeTodo = useMutation({
+    mutationFn: (id: string) => deleteTodo(id),
+    onSuccess: (_result, id) => {
+      // Take the task out of the cached list at once, so it disappears right away
+      queryClient.setQueryData<Todo[]>(["todos"], (old = []) => old.filter((t) => t.id !== id));
+      // Then mark the list as out of date, so useQuery checks with the server
+      return queryClient.invalidateQueries({ queryKey: ["todos"] });
+    },
+  });
 
   return (
     <main className="mx-auto mt-16 max-w-md px-4">
@@ -42,13 +56,18 @@ export default function Home() {
         </Link>
       </div>
       <AddTodoDialog onAdd={handleAdd} />
+      {/* useQuery tells us if the data is still loading or if it failed */}
+      {isPending && <p className="text-gray-500">Loading tasks...</p>}
+      {isError && (
+        <p className="text-red-600">Could not load the tasks. Is json-server running?</p>
+      )}
       <ul className="flex flex-col gap-2">
         {todos.map((todo) => (
           <TodoItem
             key={todo.id}
             todo={todo}
-            onToggle={handleToggle}
-            onDelete={handleDelete}
+            onToggle={(t) => toggleTodo.mutate(t)}
+            onDelete={(id) => removeTodo.mutate(id)}
           />
         ))}
       </ul>
