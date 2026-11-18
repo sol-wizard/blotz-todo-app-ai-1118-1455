@@ -11,7 +11,7 @@ import type { Todo } from "@/types/todo";
 export default function Home() {
   // The to-do list is server state: TanStack Query loads it and keeps it
   // in the shared cache under the key ["todos"]
-  const { data: todos = [], isPending, isError, refetch } = useQuery({
+  const { data: todos = [], isPending, isError } = useQuery({
     queryKey: ["todos"],
     queryFn: getAllTodos,
   });
@@ -31,17 +31,16 @@ export default function Home() {
     await addTodo.mutateAsync(values);
   }
 
-  // For now: call the API, then load the list again (step 5 changes this)
+  // The same idea again: change the server, then mark "todos" as out of date
+  const toggleTodo = useMutation({
+    mutationFn: (todo: Todo) => updateTodo(todo.id, { done: !todo.done }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["todos"] }),
+  });
 
-  async function handleToggle(todo: Todo) {
-    await updateTodo(todo.id, { done: !todo.done });
-    await refetch();
-  }
-
-  async function handleDelete(id: string) {
-    await deleteTodo(id);
-    await refetch();
-  }
+  const removeTodo = useMutation({
+    mutationFn: (id: string) => deleteTodo(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["todos"] }),
+  });
 
   return (
     <main className="mx-auto mt-16 max-w-md px-4">
@@ -62,8 +61,8 @@ export default function Home() {
           <TodoItem
             key={todo.id}
             todo={todo}
-            onToggle={handleToggle}
-            onDelete={handleDelete}
+            onToggle={(t) => toggleTodo.mutate(t)}
+            onDelete={(id) => removeTodo.mutate(id)}
           />
         ))}
       </ul>
