@@ -11,12 +11,12 @@ export async function getAllTodos(): Promise<Todo[]> {
 }
 
 // Save a new to-do through the API. The API gives it an id and sends it back.
-export async function createTodo(title: string): Promise<Todo> {
+export async function createTodo(title: string, dueDate?: string): Promise<Todo> {
   const response = await fetch(`${API_URL}/todos`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     // The date is saved with the to-do, at the moment it is added
-    body: JSON.stringify({ title, done: false, createdAt: new Date().toISOString() }),
+    body: JSON.stringify({ title, done: false, createdAt: new Date().toISOString(), dueDate }),
   });
   if (!response.ok) throw new Error("Could not save the to-do");
   return response.json();

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import AddTodoDialog from "@/components/AddTodoDialog";
 import TodoItem from "@/components/TodoItem";
 import { createTodo, deleteTodo, getAllTodos, updateTodo } from "@/lib/api";
+import type { TodoFormValues } from "@/lib/todoSchema";
 import type { Todo } from "@/types/todo";
 
 export default function Home() {
@@ -16,8 +17,8 @@ export default function Home() {
     getAllTodos().then(setTodos);
   }, []);
 
-  async function handleAdd(title: string) {
-    const newTodo = await createTodo(title);
+  async function handleAdd(values: TodoFormValues) {
+    const newTodo = await createTodo(values.title, values.dueDate || undefined);
     setTodos((current) => [...current, newTodo]);
   }
 
