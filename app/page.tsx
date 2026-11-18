@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import AddTodoDialog from "@/components/AddTodoDialog";
 import TodoItem from "@/components/TodoItem";
 import { createTodo, deleteTodo, getAllTodos, updateTodo } from "@/lib/api";
@@ -9,28 +9,27 @@ import type { TodoFormValues } from "@/lib/todoSchema";
 import type { Todo } from "@/types/todo";
 
 export default function Home() {
-  // The to-do list lives in state. When it changes, React redraws the page.
-  const [todos, setTodos] = useState<Todo[]>([]);
+  // The to-do list is server state: TanStack Query loads it and keeps it
+  // in the shared cache under the key ["todos"]
+  const { data: todos = [], refetch } = useQuery({
+    queryKey: ["todos"],
+    queryFn: getAllTodos,
+  });
 
-  // Load the to-dos from the API once, when the page opens
-  useEffect(() => {
-    getAllTodos().then(setTodos);
-  }, []);
-
+  // For now: call the API, then load the list again (step 4 changes this)
   async function handleAdd(values: TodoFormValues) {
-    const newTodo = await createTodo(values.title, values.dueDate || undefined);
-    setTodos((current) => [...current, newTodo]);
+    await createTodo(values.title, values.dueDate || undefined);
+    await refetch();
   }
 
-  // Event -> call the API -> update the state (and so the page)
   async function handleToggle(todo: Todo) {
-    const updated = await updateTodo(todo.id, { done: !todo.done });
-    setTodos((current) => current.map((t) => (t.id === updated.id ? updated : t)));
+    await updateTodo(todo.id, { done: !todo.done });
+    await refetch();
   }
 
   async function handleDelete(id: string) {
     await deleteTodo(id);
-    setTodos((current) => current.filter((t) => t.id !== id));
+    await refetch();
   }
 
   return (
