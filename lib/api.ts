@@ -20,3 +20,20 @@ export async function createTodo(title: string): Promise<Todo> {
   if (!response.ok) throw new Error("Could not save the to-do");
   return response.json();
 }
+
+// Change one to-do (for example, mark it as done)
+export async function updateTodo(id: string, changes: Partial<Todo>): Promise<Todo> {
+  const response = await fetch(`${API_URL}/todos/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(changes),
+  });
+  if (!response.ok) throw new Error("Could not update the to-do");
+  return response.json();
+}
+
+// Delete one to-do
+export async function deleteTodo(id: string): Promise<void> {
+  const response = await fetch(`${API_URL}/todos/${id}`, { method: "DELETE" });
+  if (!response.ok) throw new Error("Could not delete the to-do");
+}
