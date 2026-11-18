@@ -1,14 +1,10 @@
 import TodoItem from "@/components/TodoItem";
-import type { Todo } from "@/types/todo";
+import { getAllTodos } from "@/lib/api";
 
-// Hard-coded for now. In step 4 these come from an API.
-const todos: Todo[] = [
-  { id: "1", title: "Watch the React video", done: true },
-  { id: "2", title: "Build the to-do app", done: false },
-  { id: "3", title: "Open a PR", done: false },
-];
+export default async function Home() {
+  // Wait for the API to send the to-dos, then draw them
+  const todos = await getAllTodos();
 
-export default function Home() {
   return (
     <main className="mx-auto mt-16 max-w-md px-4">
       <h1 className="mb-6 text-3xl font-bold">My To-Do List</h1>
