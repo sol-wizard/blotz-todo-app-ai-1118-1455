@@ -10,9 +10,9 @@ const todos: Todo[] = [
 
 export default function Home() {
   return (
-    <main>
-      <h1>My To-Do List</h1>
-      <ul>
+    <main className="mx-auto mt-16 max-w-md px-4">
+      <h1 className="mb-6 text-3xl font-bold">My To-Do List</h1>
+      <ul className="flex flex-col gap-2">
         {todos.map((todo) => (
           <TodoItem key={todo.id} todo={todo} />
         ))}
