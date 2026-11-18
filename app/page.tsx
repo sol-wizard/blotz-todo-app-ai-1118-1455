@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import AddTodoDialog from "@/components/AddTodoDialog";
 import TodoItem from "@/components/TodoItem";
 import { createTodo, deleteTodo, getAllTodos, updateTodo } from "@/lib/api";
@@ -16,11 +16,22 @@ export default function Home() {
     queryFn: getAllTodos,
   });
 
-  // For now: call the API, then load the list again (step 4 changes this)
+  const queryClient = useQueryClient();
+
+  // A mutation changes data on the server. When it works, we tell the cache
+  // that "todos" is out of date, so useQuery loads the list again by itself.
+  const addTodo = useMutation({
+    mutationFn: (values: TodoFormValues) =>
+      createTodo(values.title, values.dueDate || undefined),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["todos"] }),
+  });
+
   async function handleAdd(values: TodoFormValues) {
-    await createTodo(values.title, values.dueDate || undefined);
-    await refetch();
+    // mutateAsync throws if saving fails, so the dialog can show its error
+    await addTodo.mutateAsync(values);
   }
+
+  // For now: call the API, then load the list again (step 5 changes this)
 
   async function handleToggle(todo: Todo) {
     await updateTodo(todo.id, { done: !todo.done });
