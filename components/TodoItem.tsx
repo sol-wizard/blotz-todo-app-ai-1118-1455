@@ -22,8 +22,14 @@ export default function TodoItem({ todo, onToggle, onDelete }: TodoItemProps) {
         <span className={`flex-1 ${todo.done ? "text-muted-foreground line-through" : ""}`}>
           {todo.title}
         </span>
-        <span className="text-xs text-muted-foreground">
-          {new Date(todo.createdAt).toLocaleDateString()}
+        <span className="text-right text-xs text-muted-foreground">
+          Added {new Date(todo.createdAt).toLocaleDateString()}
+          {todo.dueDate && (
+            <>
+              <br />
+              Due {new Date(`${todo.dueDate}T00:00:00`).toLocaleDateString()}
+            </>
+          )}
         </span>
         <Button variant="destructive" size="sm" onClick={() => onDelete(todo.id)}>
           Delete

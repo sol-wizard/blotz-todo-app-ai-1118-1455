@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { todoFormSchema, type TodoFormValues } from "@/lib/todoSchema";
 
 interface AddTodoDialogProps {
-  onAdd: (title: string) => Promise<void>;
+  onAdd: (values: TodoFormValues) => Promise<void>;
 }
 
 // An "Add Task" button that opens a dialog with a form
@@ -27,14 +27,14 @@ export default function AddTodoDialog({ onAdd }: AddTodoDialogProps) {
   // React Hook Form keeps the values and errors; the schema has the rules
   const form = useForm<TodoFormValues>({
     resolver: zodResolver(todoFormSchema),
-    defaultValues: { title: "" },
+    defaultValues: { title: "", dueDate: "" },
   });
   const { errors, isSubmitting } = form.formState;
 
   // Only runs when the form is valid (the schema said OK)
   async function onSubmit(values: TodoFormValues) {
     try {
-      await onAdd(values.title);
+      await onAdd(values);
       form.reset(); // saved: clear the form
       setOpen(false);
     } catch {
@@ -61,6 +61,16 @@ export default function AddTodoDialog({ onAdd }: AddTodoDialogProps) {
               {...form.register("title")}
             />
             <FieldError errors={[errors.title]} />
+          </Field>
+          <Field data-invalid={!!errors.dueDate}>
+            <FieldLabel htmlFor="dueDate">Due date (optional)</FieldLabel>
+            <Input
+              id="dueDate"
+              type="date"
+              aria-invalid={!!errors.dueDate}
+              {...form.register("dueDate")}
+            />
+            <FieldError errors={[errors.dueDate]} />
           </Field>
           {errors.root && (
             <p role="alert" className="text-sm text-destructive">
