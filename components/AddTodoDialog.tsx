@@ -29,11 +29,18 @@ export default function AddTodoDialog({ onAdd }: AddTodoDialogProps) {
     resolver: zodResolver(todoFormSchema),
     defaultValues: { title: "" },
   });
-  const { errors } = form.formState;
+  const { errors, isSubmitting } = form.formState;
 
+  // Only runs when the form is valid (the schema said OK)
   async function onSubmit(values: TodoFormValues) {
-    await onAdd(values.title);
-    setOpen(false);
+    try {
+      await onAdd(values.title);
+      form.reset(); // saved: clear the form
+      setOpen(false);
+    } catch {
+      // not saved: keep the dialog open and what the user typed
+      form.setError("root", { message: "Could not save the task. Please try again." });
+    }
   }
 
   return (
@@ -55,11 +62,18 @@ export default function AddTodoDialog({ onAdd }: AddTodoDialogProps) {
             />
             <FieldError errors={[errors.title]} />
           </Field>
+          {errors.root && (
+            <p role="alert" className="text-sm text-destructive">
+              {errors.root.message}
+            </p>
+          )}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit">Save</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : "Save"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
