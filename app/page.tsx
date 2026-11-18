@@ -39,7 +39,12 @@ export default function Home() {
 
   const removeTodo = useMutation({
     mutationFn: (id: string) => deleteTodo(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["todos"] }),
+    onSuccess: (_result, id) => {
+      // Take the task out of the cached list at once, so it disappears right away
+      queryClient.setQueryData<Todo[]>(["todos"], (old = []) => old.filter((t) => t.id !== id));
+      // Then mark the list as out of date, so useQuery checks with the server
+      return queryClient.invalidateQueries({ queryKey: ["todos"] });
+    },
   });
 
   return (
