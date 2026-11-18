@@ -11,7 +11,7 @@ import type { Todo } from "@/types/todo";
 export default function Home() {
   // The to-do list is server state: TanStack Query loads it and keeps it
   // in the shared cache under the key ["todos"]
-  const { data: todos = [], refetch } = useQuery({
+  const { data: todos = [], isPending, isError, refetch } = useQuery({
     queryKey: ["todos"],
     queryFn: getAllTodos,
   });
@@ -41,6 +41,11 @@ export default function Home() {
         </Link>
       </div>
       <AddTodoDialog onAdd={handleAdd} />
+      {/* useQuery tells us if the data is still loading or if it failed */}
+      {isPending && <p className="text-gray-500">Loading tasks...</p>}
+      {isError && (
+        <p className="text-red-600">Could not load the tasks. Is json-server running?</p>
+      )}
       <ul className="flex flex-col gap-2">
         {todos.map((todo) => (
           <TodoItem
